@@ -182,7 +182,7 @@ const resetNotice = () => {
         item.classList.remove('show');
       }
     });
-  }, 3000);
+  }, 1500);
 };
 
 const handelSubmit = (e) => {
