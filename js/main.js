@@ -3,6 +3,12 @@ const txtItemInput = document.getElementById('item-input');
 const filter = document.getElementById('filter');
 const itemContainer = document.getElementById('item-list');
 const clearBtn = document.getElementById('clear');
+const notice = document.querySelectorAll('.notice');
+const alreadyExistNotice = document.getElementById('AlreadyWarning');
+const emptyNotice = document.getElementById('emptyWarning');
+const addNotice = document.getElementById('addSuccess');
+const updateNotice = document.getElementById('updateSuccess');
+const errorNotice = document.getElementById('errorDanger');
 const shoppingList = 'shoppingList';
 let valueBeforeUpdate = '';
 
@@ -13,6 +19,7 @@ const getListFromLocalStorage = () => {
 };
 
 const setItems = () => {
+  itemContainer.innerHTML = '';
   let items = getListFromLocalStorage();
   if (items) {
     items.map((item) => {
@@ -23,7 +30,6 @@ const setItems = () => {
 
 const AddItemToDom = (item) => {
   let li = document.createElement('li');
-  console.log(item.name);
   li.appendChild(document.createTextNode(item.name));
   li.classList.add('its');
 
@@ -33,7 +39,7 @@ const AddItemToDom = (item) => {
   div.classList.add('d-flex', 'gap');
 
   let deleteBtn = createDeleteButton(['remove-item', 'btn-link', 'text-red']);
-  let editBtn = createEditButton(['btn-link', 'edit-item']);
+  let editBtn = createEditButton(['btn-link', 'edit-item', 'text-secondary']);
 
   div.appendChild(editBtn);
   div.appendChild(deleteBtn);
@@ -71,16 +77,10 @@ const addItemToLocalStorage = (item) => {
   localStorage.setItem(shoppingList, JSON.stringify(lists));
 };
 
-const createItem = (e) => {
-  e.preventDefault();
-
-  if (txtItemInput.value === null || txtItemInput.value === '') {
-    alert('Please Enter Value');
-    return;
-  }
-
+const createItem = (inputValue) => {
+  // create object
   let itemObj = {
-    name: txtItemInput.value,
+    name: inputValue,
     isBuy: false,
   };
 
@@ -88,6 +88,8 @@ const createItem = (e) => {
   // add item to local storage
   addItemToLocalStorage(itemObj);
   txtItemInput.value = '';
+  addNotice.classList.add('show');
+  resetNotice();
   checkUi();
 };
 
@@ -136,8 +138,21 @@ const filterItems = (e) => {
   });
 };
 
+const checkDuplicate = (insertValue) => {
+  let list = getListFromLocalStorage();
+
+  list = list.filter(
+    (item) => item.name.toLowerCase() === insertValue.toLowerCase()
+  );
+
+  if (list.length > 0) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 const updateItemToDom = (updatedValue) => {
-  console.log('beforeUpdate', valueBeforeUpdate);
   let lists = getListFromLocalStorage();
   let updatedLists = lists.map((item) => {
     let { name, isBuy } = item;
@@ -148,6 +163,8 @@ const updateItemToDom = (updatedValue) => {
   });
   localStorage.setItem(shoppingList, JSON.stringify(updatedLists));
   itemContainer.innerHTML = '';
+  updateNotice.classList.add('show');
+  resetNotice();
   setItems();
   checkUi();
 };
@@ -158,18 +175,35 @@ const handelClear = () => {
   checkUi();
 };
 
+const resetNotice = () => {
+  setTimeout(() => {
+    notice.forEach((item) => {
+      if (item.classList.contains('show')) {
+        item.classList.remove('show');
+      }
+    });
+  }, 3000);
+};
+
 const handelSubmit = (e) => {
   e.preventDefault();
 
   if (txtItemInput.value === null || txtItemInput.value === '') {
-    alert('Please Enter Value');
+    emptyNotice.classList.add('show');
+    resetNotice();
+    return;
+  }
+
+  if (checkDuplicate(txtItemInput.value)) {
+    alreadyExistNotice.classList.add('show');
+    resetNotice();
     return;
   }
 
   let submitBtn = document.getElementById('submitBtn');
 
   if (submitBtn.textContent.trim() === 'Add Item') {
-    console.log('first');
+    createItem(txtItemInput.value);
   } else {
     updateItemToDom(txtItemInput.value);
   }
